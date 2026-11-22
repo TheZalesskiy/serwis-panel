@@ -44,11 +44,21 @@
   function valid(u) {
     return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec\?k=[A-Za-z0-9]+/.test(u);
   }
+  // &app=pwa — panel wie, że działa w aplikacji i po nowym wdrożeniu poprosi o przeładowanie
+  const withApp = u => u + (u.includes("app=pwa") ? "" : "&app=pwa");
   function open(u) {
     document.getElementById("setup").classList.add("hidden");
     const f = document.getElementById("app");
-    f.src = u; f.classList.remove("hidden");
+    f.src = withApp(u) + "&_=" + Date.now(); f.classList.remove("hidden");
   }
+
+  // 🔄 panel zgłasza nową wersję → przeładuj go (świeży adres, bez cache)
+  window.addEventListener("message", e => {
+    if (!e.data || e.data.type !== "nb-reload") return;
+    if (!/(^|\.)googleusercontent\.com$|(^|\.)google\.com$/.test(new URL(e.origin).hostname)) return;
+    const saved = get();
+    if (saved && valid(saved)) open(saved);
+  });
 
   // link można też podać raz w adresie: …/serwis-panel/#https://script.google.com/…?k=…
   const fromHash = decodeURIComponent(location.hash.slice(1));

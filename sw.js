@@ -1,6 +1,6 @@
 // Service worker — wymagany przez Androida, żeby można było "Zainstalować" aplikację.
 // Zapisuje tylko powłokę (tę stronę i ikony). Dane panelu zawsze idą na żywo z Google.
-const CACHE = "serwis-shell-v1";
+const CACHE = "serwis-shell-v2";
 const SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
