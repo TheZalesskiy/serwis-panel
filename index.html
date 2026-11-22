@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f7a4d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Serwis Nuga Best</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  html,body{margin:0;height:100%;background:#fff;font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  #app{position:fixed;inset:0;width:100%;height:100%;border:0}
+  #setup{max-width:360px;margin:12vh auto 0;padding:0 20px;text-align:center;color:#1d2330}
+  #setup img{width:96px;height:96px}
+  #setup h1{font-size:20px;margin:12px 0 4px}
+  #setup p{color:#6b7280;margin:0 0 16px}
+  #setup textarea{width:100%;box-sizing:border-box;min-height:90px;border:1px solid #e5e7eb;border-radius:14px;padding:12px;font:inherit}
+  #setup button{width:100%;margin-top:12px;border:0;border-radius:14px;padding:14px;font:600 17px/1 inherit;background:#1f7a4d;color:#fff}
+  #err{color:#b91c1c;min-height:22px;margin-top:10px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+
+<!-- Pierwsze uruchomienie: wklej link do panelu (z kluczem ?k=…). Zapisuje się tylko na tym telefonie. -->
+<section id="setup" class="hidden">
+  <img src="icon-192.png" alt="">
+  <h1>Serwis Nuga Best</h1>
+  <p>Wklej link do panelu, który dostałeś od admina (kończy się na <b>?k=…</b>).</p>
+  <textarea id="url" placeholder="https://script.google.com/macros/s/…/exec?k=…"></textarea>
+  <button id="save">Zapisz i otwórz</button>
+  <div id="err"></div>
+</section>
+
+<iframe id="app" class="hidden" allow="clipboard-write" title="Panel serwisanta"></iframe>
+
+<script>
+  const KEY = "nb_panel_url";
+  const get = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
+  const set = v => { try { localStorage.setItem(KEY, v); } catch (e) {} };
+
+  function valid(u) {
+    return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec\?k=[A-Za-z0-9]+/.test(u);
+  }
+  function open(u) {
+    document.getElementById("setup").classList.add("hidden");
+    const f = document.getElementById("app");
+    f.src = u; f.classList.remove("hidden");
+  }
+
+  // link można też podać raz w adresie: …/serwis-panel/#https://script.google.com/…?k=…
+  const fromHash = decodeURIComponent(location.hash.slice(1));
+  if (fromHash === "reset") { try { localStorage.removeItem(KEY); } catch (e) {} history.replaceState(null, "", location.pathname); }
+  if (valid(fromHash)) { set(fromHash); history.replaceState(null, "", location.pathname); }
+
+  const saved = get();
+  if (saved && valid(saved)) open(saved);
+  else document.getElementById("setup").classList.remove("hidden");
+
+  document.getElementById("save").onclick = () => {
+    const u = document.getElementById("url").value.trim();
+    if (!valid(u)) { document.getElementById("err").textContent = "To nie wygląda na link do panelu (…/exec?k=…)."; return; }
+    set(u); open(u);
+  };
+
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
